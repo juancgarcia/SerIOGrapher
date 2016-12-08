@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Accelerometer Graphs</title>
+    <link rel="stylesheet" href="../bower_components/rickshaw/rickshaw.min.css">
+</head>
+
+
+<style>
+.chart_container {
+        position: relative;
+        font-family: Arial, Helvetica, sans-serif;
+        outline: 1px solid #b5b5b5;
+        /*padding: 20px;*/
+        margin: 10px;
+        width: 540px;
+        float: left;
+}
+.chart {
+        position: relative;
+        left: 40px;
+}
+.y_axis {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 40px;
+}
+.myButton {
+	-moz-box-shadow:inset 0px 1px 0px 0px #dcecfb;
+	-webkit-box-shadow:inset 0px 1px 0px 0px #dcecfb;
+	box-shadow:inset 0px 1px 0px 0px #dcecfb;
+	background:-webkit-gradient(linear, left top, left bottom, color-stop(0.05, #bddbfa), color-stop(1, #80b5ea));
+	background:-moz-linear-gradient(top, #bddbfa 5%, #80b5ea 100%);
+	background:-webkit-linear-gradient(top, #bddbfa 5%, #80b5ea 100%);
+	background:-o-linear-gradient(top, #bddbfa 5%, #80b5ea 100%);
+	background:-ms-linear-gradient(top, #bddbfa 5%, #80b5ea 100%);
+	background:linear-gradient(to bottom, #bddbfa 5%, #80b5ea 100%);
+	filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#bddbfa', endColorstr='#80b5ea',GradientType=0);
+	background-color:#bddbfa;
+	-moz-border-radius:6px;
+	-webkit-border-radius:6px;
+	border-radius:6px;
+	border:1px solid #84bbf3;
+	display:inline-block;
+	cursor:pointer;
+	color:#ffffff;
+	font-family:Arial;
+	font-size:15px;
+	font-weight:bold;
+	padding:6px 24px;
+	text-decoration:none;
+	text-shadow:0px 1px 0px #528ecc;
+}
+.myButton:hover {
+	background:-webkit-gradient(linear, left top, left bottom, color-stop(0.05, #80b5ea), color-stop(1, #bddbfa));
+	background:-moz-linear-gradient(top, #80b5ea 5%, #bddbfa 100%);
+	background:-webkit-linear-gradient(top, #80b5ea 5%, #bddbfa 100%);
+	background:-o-linear-gradient(top, #80b5ea 5%, #bddbfa 100%);
+	background:-ms-linear-gradient(top, #80b5ea 5%, #bddbfa 100%);
+	background:linear-gradient(to bottom, #80b5ea 5%, #bddbfa 100%);
+	filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#80b5ea', endColorstr='#bddbfa',GradientType=0);
+	background-color:#80b5ea;
+}
+.myButton:active {
+	position:relative;
+	top:1px;
+}
+
+
+</style>
+
+
+<div class="chart_container">
+    <div id="accel_y_axis" class="y_axis"></div>
+    <div id="accel_chart" class="chart"></div>
+    <a href="#" class="myButton" onclick="console.log(this);">Snapshot</a>
+    <div id="accel_y_axis_snap_1" class="y_axis"></div>
+    <div id="accel_chart_snap_1" class="chart"></div>
+</div>
+
+<div class="chart_container">
+    <div id="gyro_y_axis" class="y_axis"></div>
+    <div id="gyro_chart" class="chart"></div>
+    <a href="#" class="myButton">Snapshot</a>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+<script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
+<script src="/bower_components/d3/d3.min.js"></script>
+<script src="/bower_components/rickshaw/rickshaw.min.js"></script>
+<script src="/bower_components/rickshaw/src/js/Rickshaw.Graph.RangeSlider.js"></script>
+<script src="/bower_components/rickshaw/src/js/Rickshaw.Graph.RangeSlider.Preview.js"></script>
+<script src="/bower_components/rickshaw/src/js/Rickshaw.Graph.Smoother.js"></script>
+<!--script src="bower_components/socket.io/" -->
+
+<script src="/public/main.js"></script>
+<script>
+    Seriographer.init({
+        io_source: 'http://localhost:8080/port/COM3',
+        sets: [
+            {
+                graph_el: 'accel_chart',
+                graph_y_el: 'accel_y_axis',
+                mapping: function(parts){
+                    return [
+                        parts[0], /*ax*/
+                        parts[1], /*ay*/
+                        parts[2]  /*az*/
+                    ];
+                },
+                graph: {
+                    series: [
+                        {
+                            color: 'red',
+                            name: 'ax',
+                            data: []
+                        },
+                        {
+                            color: 'green',
+                            name: 'ay',
+                            data: []
+                        },
+                        {
+                            color: 'blue',
+                            name: 'az',
+                            data: []
+                        }
+                    ]
+                },
+                y_axis: {
+                }
+            },
+            {
+                graph_el: 'gyro_chart',
+                graph_y_el: 'gyro_y_axis',
+                mapping: function(parts){
+                    return [
+                        parts[3], /*gx*/
+                        parts[4], /*gy*/
+                        parts[5]  /*gz*/
+                    ];
+                },
+                graph: {
+                    min: -50000,
+                    max: 50000,
+                    series: [
+                        {
+                            color: 'orange',
+                            name: 'gx',
+                            data: []
+                        },
+                        {
+                            color: 'teal',
+                            name: 'gy',
+                            data: []
+                        },
+                        {
+                            color: 'purple',
+                            name: 'gz',
+                            data: []
+                        }
+                    ]
+                }
+            }
+        ],
+        overrides: {
+            graph: {
+                width: 500
+            }
+        }
+    }, io, Rickshaw);
+</script>
