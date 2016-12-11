@@ -1,7 +1,10 @@
 /*main.js*/
-    var Seriographer = window.Seriographer || {};
+var Seriographer = window.Seriographer || {},
+    jQuery = window.jQuery || {},
+    Rickshaw = window.Rickshaw || {},
+    io = window.io || {};
 
-(function () {
+(function (jQuery, Rickshaw, io) {
     "use strict";
     //window.Seriographer = undefined;
 
@@ -9,7 +12,11 @@
 
     // cheap Ext.apply ripoff
     Seriographer.compose = function (result, override, defaults) {
-        var prop;
+        var prop,
+            rObj,
+            rArr,
+            dObj,
+            dArr;
         override = override || {};
         defaults = defaults || {};
         result = result || {};
@@ -17,15 +24,15 @@
         // set any defaults first
         for (prop in defaults) {
             if (defaults.hasOwnProperty(prop)) {
-                var rObj = result[prop] instanceof Object,
-                    rArr = result[prop] instanceof Array,
-                    dObj = defaults[prop] instanceof Object,
-                    dArr = defaults[prop] instanceof Array;
+                rObj = result[prop] instanceof Object;
+                rArr = result[prop] instanceof Array;
+                dObj = defaults[prop] instanceof Object;
+                dArr = defaults[prop] instanceof Array;
 
                 if (!result.hasOwnProperty(prop)) {
                     result[prop] = defaults[prop];
-                } else if(rObj && !rArr && dObj && !dArr) {
-                    Seriographer.compose(result[prop], {}, defaults[prop])
+                } else if (rObj && !rArr && dObj && !dArr) {
+                    Seriographer.compose(result[prop], {}, defaults[prop]);
                 } //else if(rArr && dArr) {
                     // Skip? not sure what makes sense for Arrays yet in regards to merging
                     // Seriographer.compose
@@ -36,12 +43,12 @@
         // then handle overrides
         for (prop in override) {
             if (override.hasOwnProperty(prop)) {
-                var rObj = result[prop] instanceof Object,
-                    rArr = result[prop] instanceof Array,
-                    dObj = defaults[prop] instanceof Object,
-                    dArr = defaults[prop] instanceof Array;
+                rObj = result[prop] instanceof Object;
+                rArr = result[prop] instanceof Array;
+                dObj = defaults[prop] instanceof Object;
+                dArr = defaults[prop] instanceof Array;
 
-                if(!result.hasOwnProperty(prop)) {
+                if (!result.hasOwnProperty(prop)) {
                     result[prop] = override[prop];
                 } else if (rObj && !rArr && dObj && !dArr) {
                     Seriographer.compose(result[prop], override[prop]);
@@ -67,12 +74,13 @@
         }
 
         cfg_list.forEach(function (rickshaw_cfg_group) {
-            var graph = Seriographer.compose({
+            var group,
+                graph = Seriographer.compose({
                     element: document.getElementById(rickshaw_cfg_group.graph_el)
                 }, rickshaw_cfg_group.graph, that.running_defaults.graph);
             graph = new Rickshaw.Graph(graph);
 
-            rickshaw_sets.push({
+            group = {
                 original_config: rickshaw_cfg_group,
                 graph: graph,
                 x_axis: new Rickshaw.Graph.Axis.Time(Seriographer.compose({
@@ -83,7 +91,93 @@
                     element: document.getElementById(rickshaw_cfg_group.graph_y_el)
                 },
                     rickshaw_cfg_group.y_axis, that.running_defaults.y_axis))
-            });
+            };
+
+            // Snapshot Button & snapshot graph creation
+            jQuery(document.createElement("div"))
+                .attr("data_snap_index", 0)
+                .addClass("myButton")
+                .insertAfter("#" + rickshaw_cfg_group.graph_el)
+                .text("Snapshot")
+                .click(function () {
+                    var graph_id = rickshaw_cfg_group.graph_el,
+                        cloned_series_data = [],
+                        idx = jQuery(this).attr("data_snap_index"),
+                        new_snap_graph_id = graph_id + "_snap_" + idx,
+                        snap_graph,
+                        $snap_graph,
+                        snap_graph_y,
+                        $snap_graph_y,
+                        snap_hover_detail,
+                        snap_slider;
+
+                    jQuery(this).attr("data_snap_index", parseInt(idx, 10) + 1);
+                    // console.log("#"+graph_id + " snap " + idx);
+
+                    graph.series.forEach(function (data_group) {
+                        var data_arr = [],
+                            offset = 0;
+
+                        offset = data_group.data[0].x;
+
+                        data_group.data.forEach(function (data_item) {
+                            data_arr.push({
+                                x: data_item.x - offset,
+                                y: data_item.y
+                            });
+                        });
+
+                        cloned_series_data.push({
+                            color: data_group.color,
+                            name: data_group.name,
+                            data: data_arr
+                        });
+                    });
+
+                    console.log(cloned_series_data);
+                    // JSON.stringify(cloned_series_data)
+
+                    $snap_graph_y = jQuery(document.createElement("div"))
+                        .attr({id: new_snap_graph_id + "_y"})
+                        .addClass("y_axis")
+                        .insertAfter(jQuery(this).parent())
+                        .wrap('<div class="chart_container"/>');
+
+                    $snap_graph = jQuery(document.createElement("div"))
+                        .attr({id: new_snap_graph_id})
+                        .addClass("chart")
+                        .insertAfter($snap_graph_y);
+
+                    jQuery(document.createElement("div")).attr({
+                        id: new_snap_graph_id + "_slider"
+                    }).insertAfter($snap_graph);
+
+                    snap_graph = new Rickshaw.Graph(Seriographer.compose({
+                        element: document.getElementById(new_snap_graph_id),
+                        series: cloned_series_data
+                    }, that.running_defaults.graph));
+
+                    snap_hover_detail = new Rickshaw.Graph.HoverDetail({
+                        graph: snap_graph,
+                        xFormatter: function (x) { return x + "milliseconds"; }// ,
+                        // yFormatter: function(y) { return Math.floor(y) + " percent" }
+                    });
+
+                    snap_graph_y = new Rickshaw.Graph.Axis.Y(Seriographer.compose({
+                        graph: snap_graph,
+                        element: document.getElementById(new_snap_graph_id + "_y")
+                    },
+                        rickshaw_cfg_group.y_axis, that.running_defaults.y_axis));
+
+                    snap_graph.render();
+
+                    snap_slider = new Rickshaw.Graph.RangeSlider({
+                        graph: snap_graph,
+                        element: document.querySelector('#' + new_snap_graph_id + "_slider")
+                    });
+                });
+            rickshaw_sets.push(group);
+
         });
         that.sets = that.sets.concat(rickshaw_sets);
         return rickshaw_sets;
@@ -112,10 +206,9 @@
 
         // render the graph
         graph.update();
-
     };
     
-    Seriographer.init = function (config, io, Rickshaw) {
+    Seriographer.init = function (config) {
         Rickshaw = Rickshaw || {};
         io = io || {};
 
@@ -167,4 +260,4 @@
         });
         return Seriographer_instance;
     };
-})();
+})(jQuery, Rickshaw, io);
