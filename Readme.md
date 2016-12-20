@@ -23,9 +23,9 @@ npm install command-line-args serialport socket.io socket.io-serialport
 node acc_serial_socket.js -l
 ```
 
-### Run serial soket server
+### Run serial socket server
 
-default port is COM3 (windows*)
+default port is `COM3` (windows*)
 
 ```bash
 node acc_serial_socket.js
@@ -37,8 +37,7 @@ specifying a different port number
 node acc_serial_socket.js -p 2
 ```
 
-* linux/Mac users will need to manually change the COM# references to /dev/tty# or whatever is appropriate for their system
-### Run serial soket server specifying port
+(* linux/Mac users will need to manually change the `COM#` references in `acc_serial_socket.js` and `public/acc_graph.html` to `/dev/tty#` or whatever is appropriate for their system)
 
 
 ### Run graph webpage
