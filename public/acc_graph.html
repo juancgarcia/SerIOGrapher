@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Accelerometer Graphs</title>
-    <link rel="stylesheet" href="../bower_components/rickshaw/rickshaw.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/rickshaw/1.6.0/rickshaw.min.css">
     <link type="text/css" rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/base/jquery-ui.css">
     <link type="text/css" rel="stylesheet" href="main.css">
 </head>
@@ -25,27 +25,34 @@
 <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
 <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
 <script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
-<script src="/bower_components/d3/d3.min.js"></script>
-<script src="/bower_components/rickshaw/rickshaw.min.js"></script>
-<script src="/bower_components/rickshaw/src/js/Rickshaw.Graph.RangeSlider.js"></script>
-<script src="/bower_components/rickshaw/src/js/Rickshaw.Graph.RangeSlider.Preview.js"></script>
-<script src="/bower_components/rickshaw/src/js/Rickshaw.Graph.Smoother.js"></script>
-<!--script src="bower_components/socket.io/" -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/rickshaw/1.6.0/rickshaw.min.js"></script>
+<script src="https://cdn.rawgit.com/shutterstock/rickshaw/v1.6.0/src/js/Rickshaw.Graph.RangeSlider.js"></script>
+<script src="https://cdn.rawgit.com/shutterstock/rickshaw/v1.6.0/src/js/Rickshaw.Graph.RangeSlider.Preview.js"></script>
+<script src="https://cdn.rawgit.com/shutterstock/rickshaw/v1.6.0/src/js/Rickshaw.Graph.Smoother.js"></script>
 
-<script src="/public/main.js"></script>
+<script src="main.js"></script>
 <script>
-    var sg_data = Seriographer.init({
-        io_source: 'http://localhost:8080/port/COM3',
+    var
+    h_prefix = "#com",
+    h = window.location.hash.toLowerCase();
+    portnum = (h.indexOf(h_prefix) == 0)? parseInt(h.split(h_prefix)[1], 10): 3,
+    sg_data = Seriographer.init({
+        io_source: 'http://localhost:8080/port/COM'+portnum,
         sets: [
             {
                 graph_el: 'accel_chart',
                 graph_y_el: 'accel_y_axis',
-                mapping: function(parts){
-                    return [
-                        parseInt(parts[0]), /*ax*/
-                        parseInt(parts[1]), /*ay*/
-                        parseInt(parts[2])  /*az*/
-                    ];
+                mapping: function(data){
+                    var parts = data.split("\t");
+                    return {
+                        x: parseInt(parts[6], 10),
+                        y: [
+                            parseInt(parts[0]), /*ax*/
+                            parseInt(parts[1]), /*ay*/
+                            parseInt(parts[2])  /*az*/
+                        ]
+                    };
                 },
                 graph: {
                     series: [
@@ -72,12 +79,16 @@
             {
                 graph_el: 'gyro_chart',
                 graph_y_el: 'gyro_y_axis',
-                mapping: function(parts){
-                    return [
-                        parseInt(parts[3]), /*gx*/
-                        parseInt(parts[4]), /*gy*/
-                        parseInt(parts[5])  /*gz*/
-                    ];
+                mapping: function(data){
+                    var parts = data.split("\t");
+                    return {
+                        x: parseInt(parts[6], 10),
+                        y: [
+                            parseInt(parts[3]), /*gx*/
+                            parseInt(parts[4]), /*gy*/
+                            parseInt(parts[5])  /*gz*/
+                        ]
+                    };
                 },
                 graph: {
                     min: -50000,

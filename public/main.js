@@ -247,16 +247,17 @@ var Seriographer = window.Seriographer || {},
 
 
         // Kickstart
-        io(config.io_source || Seriographer.defaults.io_source).on('data', function (data) {
-            var parts = data.split("\t"),
-                ts = (new Date()).getTime() - (Seriographer_instance.running_defaults.start_time);
+        Seriographer_instance.io = io(config.io_source || Seriographer.defaults.io_source);
+        Seriographer_instance.io.on('data', function (serialData) {
 
             Seriographer_instance.sets.forEach(function (graph_set) {
-                Seriographer.pushData.call(Seriographer_instance, graph_set.graph, {
-                    x: ts,
-                    y: graph_set.original_config.mapping(parts)
-                });
+                Seriographer.pushData.call(
+                    Seriographer_instance,
+                    graph_set.graph,
+                    graph_set.original_config.mapping(serialData)
+                );
             });
+
         });
         return Seriographer_instance;
     };
