@@ -185,7 +185,7 @@ var Seriographer = window.Seriographer || {},
 
     // update graph
     Seriographer.pushData = function (graph, payload) {
-        var that = this || { running_defaults: { data_limit: 200 } },
+        var that = this,
             i = 0;
         
         payload.y.forEach(function (data, i) {
@@ -221,13 +221,13 @@ var Seriographer = window.Seriographer || {},
         var defaults = {
                 io_source: 'http://localhost:8080/port/COM3',
                 start_time: (new Date()).getTime(),
-                data_limit: 250,
+                data_limit: 150,
                 graph: {
                     width: 800,
                     height: 250,
                     renderer: 'line',
-                    min: -40000,
-                    max: 40000
+                    min: -20000,
+                    max: 20000
                 },
                 x_axis: {},
                 y_axis: {
@@ -248,8 +248,19 @@ var Seriographer = window.Seriographer || {},
 
         // Kickstart
         Seriographer_instance.io = io(config.io_source || Seriographer.defaults.io_source);
-        Seriographer_instance.io.on('data', function (serialData) {
 
+        // rate limiting by time since last allowed data chunk
+        Seriographer_instance.minWaitTimeMs = 5
+        Seriographer_instance.lastDataTimestamp = Date.now()
+        Seriographer_instance.canReadData = function () {
+            return Date.now() - Seriographer_instance.lastDataTimestamp < Seriographer_instance.minWaitTimeMs
+        }
+
+        Seriographer_instance.io.on('data', function (serialData) {
+            if (Seriographer_instance.canReadData()) {
+                return
+            }
+          
             Seriographer_instance.sets.forEach(function (graph_set) {
                 Seriographer.pushData.call(
                     Seriographer_instance,
@@ -258,6 +269,7 @@ var Seriographer = window.Seriographer || {},
                 );
             });
 
+            Seriographer_instance.lastDataTimestamp = Date.now()
         });
         return Seriographer_instance;
     };
