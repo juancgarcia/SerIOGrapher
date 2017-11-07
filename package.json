@@ -1,0 +1,29 @@
+{
+  "name": "seriographer",
+  "version": "1.0.0",
+  "description": "read streaming serial data (from an arduino for instance) and plot it on a moving graph in your browser.",
+  "main": "acc_serial_socket.js",
+  "dependencies": {
+    "command-line-args": "^4.0.7",
+    "express": "^4.16.2",
+    "serialport": "^4.0.7",
+    "socket.io": "^2.0.4",
+    "socket.io-serialport": "^2.0.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node acc_serial_socket"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/juancgarcia/SerioGrapher.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/juancgarcia/SerioGrapher/issues"
+  },
+  "homepage": "https://github.com/juancgarcia/SerioGrapher#readme"
+}

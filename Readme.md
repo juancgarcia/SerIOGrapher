@@ -12,7 +12,7 @@ Git clone or download/extract zip
 
 ```bash
 cd SerIOGrapher
-npm install command-line-args serialport socket.io socket.io-serialport
+npm install
 ```
 
 ## Usage
@@ -25,7 +25,8 @@ node acc_serial_socket.js -l
 
 ### Run serial socket server
 
-default port is `COM3` (windows*)
+default serialport is number 3
+(`COM3` on windows, `/dev/ttyS3` on linux *)
 
 ```bash
 node acc_serial_socket.js
@@ -37,12 +38,12 @@ specifying a different port number
 node acc_serial_socket.js -p 2
 ```
 
-(* linux/Mac users will need to manually change the `COM#` references in `acc_serial_socket.js` and `public/acc_graph.html` to `/dev/tty#` or whatever is appropriate for their system)
+(* Mac users will need to manually edit the `portPrefix` section in `acc_serial_socket.js` to whatever is appropriate for their system)
 
 
 ### Run graph webpage
 
-open public/acc_graph.html in your browser of choice to see the data rendered. (tested on Chrome 55.0.2883.87 m 64-bit)
+open [http://localhost:8080](http://localhost:8080) in your browser of choice to see the data rendered. (tested on Chrome 55.0.2883.87 m 64-bit)
 
 ![graph](img/graph.png)
 
