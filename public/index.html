@@ -33,12 +33,12 @@
 
 <script src="main.js"></script>
 <script>
-    var
-    h_prefix = "#com",
-    h = window.location.hash.toLowerCase();
-    portnum = (h.indexOf(h_prefix) == 0)? parseInt(h.split(h_prefix)[1], 10): 3,
+    const init = async function() {
+    const response = await fetch('/serial_config');
+    const config = await response.json();
+    console.log('serial_config', config)
     sg_data = Seriographer.init({
-        io_source: 'http://localhost:8080/port/COM'+portnum,
+        io_source: '/port/COM'+config.port,
         sets: [
             {
                 graph_el: 'accel_chart',
@@ -120,4 +120,6 @@
             }
         }
     });
+}
+init()
 </script>

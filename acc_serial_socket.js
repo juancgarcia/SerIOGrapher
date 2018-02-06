@@ -7,6 +7,10 @@ const express = require('express')
 const http = require('http')
 const app = express()
 const server = http.Server(app)
+let port_number = 0
+let serialBaudrate = 38400
+let serialRoute
+let serialDevice
 
 app.set('port', process.env.PORT || 8080)
 app.use('/', express.static('./public'))
@@ -42,20 +46,23 @@ if( options.list_ports ) {
 
 } else {
 
-  const port_number = parseInt(options.port_number, 10);
+  port_number = parseInt(options.port_number, 10);
 
   // console.log(JSON.stringify(port_number));
 
   const io = new socketio(server);
+  
+  serialRoute = '/port/COM'+port_number
+  serialDevice = portPrefix+port_number
 
   const serialport = new SocketIOSerialPort({
     io: io,
-    route: '/port/COM'+port_number,
+    route: serialRoute,
     captureFile: './COM'+port_number+'.out',
     retryPeriod: 1000,
-    device: portPrefix+port_number,
+    device: serialDevice,
     options: {
-      baudrate: 38400,
+      baudrate: serialBaudrate,
       parser: RealSerialPort.parsers.readline('\r\n')
     }
   });
@@ -75,6 +82,16 @@ if( options.list_ports ) {
   });
 
 }
+
+app.get('/serial_config', (req, res) => {
+  const config = {
+    port: port_number,
+    route: serialRoute,
+    device: serialDevice,
+    baudrate: serialBaudrate
+  }
+  res.send(`${JSON.stringify(config)}`);
+})
 
 const listener = server.listen(app.get('port'), (err) => {
   if (err) console.error(err)
