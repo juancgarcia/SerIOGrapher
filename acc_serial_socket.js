@@ -12,7 +12,7 @@ let serialBaudrate = 38400
 let serialRoute
 let serialDevice
 
-app.set('port', process.env.PORT || 8080)
+app.set('port', process.env.PORT || 3000)
 app.use('/', express.static('./public'))
 
 const optionDefinitions = [
@@ -24,18 +24,15 @@ const options = commandLineArgs(optionDefinitions);
 let portPrefix = ''
 if (process.platform === 'linux') {
   portPrefix = '/dev/ttyS'
-} else if (process.platform === 'win32') {
+} else if (/^win/.test(process.platform)) {
   portPrefix = 'COM'
 } else {
-  console.log('Currently only supports linux and windows, Sorry!')
-  console.log('Feel free to edit submit a PR for enumerating/reading serial ports on other systems')
-  process.exit()
+  portPrefix = '/dev/';
 }
 
 // console.log(JSON.stringify(options));
 
 if( options.list_ports ) {
-
   RealSerialPort.list(function (err, ports) {
     ports.forEach(function(port) {
       console.log(port.comName);
@@ -53,12 +50,16 @@ if( options.list_ports ) {
   const io = new socketio(server);
   
   serialRoute = '/port/COM'+port_number
-  serialDevice = portPrefix+port_number
-
+  
+if (/^win/.test(process.platform)) {
+ serialDevice = portPrefix+port_number
+}
+  
+  
   const serialport = new SocketIOSerialPort({
     io: io,
     route: serialRoute,
-    captureFile: './COM'+port_number+'.out',
+    captureFile: './log_'+serialDevice+'.out',
     retryPeriod: 1000,
     device: serialDevice,
     options: {
@@ -72,7 +73,7 @@ if( options.list_ports ) {
 
   serialport.open()
   .then(() => {
-    console.log(`port opened: ${port_number}`);
+    console.log(`port opened: ${serialDevice}`);
 
     // And when done (shutting down, etc) 
     // serialport.close()
